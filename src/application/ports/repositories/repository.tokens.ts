@@ -1,0 +1,3 @@
+export const AYAH_REPOSITORY = Symbol("AYAH_REPOSITORY");
+export const HADITH_REPOSITORY = Symbol("HADITH_REPOSITORY");
+export const KISSA_REPOSITORY = Symbol("KISSA_REPOSITORY");

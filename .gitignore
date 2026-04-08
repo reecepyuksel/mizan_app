@@ -1,0 +1,17 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+.npmrc
+.pnp.*
+.DS_Store
+
+# Secrets and local credentials
+*.pem
+*.key
+*.p12
+*.crt
+*.cer
+*.secrets
+secrets/
