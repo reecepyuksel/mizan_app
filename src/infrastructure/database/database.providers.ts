@@ -6,6 +6,9 @@ import { SEQUELIZE } from "./database.constants";
 import { AyahModel } from "./models/ayah.model";
 import { HadithModel } from "./models/hadith.model";
 import { KissaModel } from "./models/kissa.model";
+import { NotificationDeviceModel } from "./models/notification-device.model";
+import { UserFavoriteModel } from "./models/user-favorite.model";
+import { UserNoteModel } from "./models/user-note.model";
 
 export const databaseProviders: Provider[] = [
   {
@@ -20,7 +23,14 @@ export const databaseProviders: Provider[] = [
         username: configService.get<string>("DB_USER", "mizan_user"),
         password: configService.get<string>("DB_PASSWORD", "mizan_pass"),
         schema: configService.get<string>("DB_SCHEMA", "public"),
-        models: [AyahModel, HadithModel, KissaModel],
+        models: [
+          AyahModel,
+          HadithModel,
+          KissaModel,
+          NotificationDeviceModel,
+          UserFavoriteModel,
+          UserNoteModel,
+        ],
         logging: false,
         benchmark: true,
         define: {

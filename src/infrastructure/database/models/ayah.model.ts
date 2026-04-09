@@ -18,6 +18,14 @@ import {
       using: "gin",
       fields: ["search_vector"],
     },
+    {
+      name: "ayahs_surah_ayah_idx",
+      fields: ["surah_number", "ayah_number"],
+    },
+    {
+      name: "ayahs_updated_at_idx",
+      fields: ["updated_at"],
+    },
   ],
 })
 export class AyahModel extends Model {

@@ -30,4 +30,44 @@ export class HadithSequelizeRepository
 
     return this.runRawQuery<Hadith>(sql, { query, limit });
   }
+
+  public async list(
+    limit: number,
+    offset: number,
+    source?: string,
+  ): Promise<Hadith[]> {
+    const sql = `
+      SELECT
+        id,
+        source,
+        chapter,
+        content
+      FROM hadiths
+      WHERE (:source::text IS NULL OR source = :source)
+      ORDER BY source ASC, id ASC
+      LIMIT :limit OFFSET :offset;
+    `;
+
+    return this.runRawQuery<Hadith>(sql, {
+      limit,
+      offset,
+      source: source ?? null,
+    });
+  }
+
+  public async findById(id: string): Promise<Hadith | null> {
+    const sql = `
+      SELECT
+        id,
+        source,
+        chapter,
+        content
+      FROM hadiths
+      WHERE id = :id
+      LIMIT 1;
+    `;
+
+    const rows = await this.runRawQuery<Hadith>(sql, { id });
+    return rows[0] ?? null;
+  }
 }

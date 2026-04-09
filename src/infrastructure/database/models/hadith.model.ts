@@ -18,6 +18,14 @@ import {
       using: "gin",
       fields: ["search_vector"],
     },
+    {
+      name: "hadiths_source_id_idx",
+      fields: ["source", "id"],
+    },
+    {
+      name: "hadiths_updated_at_idx",
+      fields: ["updated_at"],
+    },
   ],
 })
 export class HadithModel extends Model {

@@ -31,4 +31,46 @@ export class AyahSequelizeRepository
 
     return this.runRawQuery<Ayah>(sql, { query, limit });
   }
+
+  public async list(
+    limit: number,
+    offset: number,
+    surahNumber?: number,
+  ): Promise<Ayah[]> {
+    const sql = `
+      SELECT
+        id,
+        surah_number AS "surahNumber",
+        ayah_number AS "ayahNumber",
+        arabic_text AS "arabicText",
+        turkish_meal AS "turkishMeal"
+      FROM ayahs
+      WHERE (:surahNumber::int IS NULL OR surah_number = :surahNumber)
+      ORDER BY surah_number ASC, ayah_number ASC
+      LIMIT :limit OFFSET :offset;
+    `;
+
+    return this.runRawQuery<Ayah>(sql, {
+      limit,
+      offset,
+      surahNumber: surahNumber ?? null,
+    });
+  }
+
+  public async findById(id: string): Promise<Ayah | null> {
+    const sql = `
+      SELECT
+        id,
+        surah_number AS "surahNumber",
+        ayah_number AS "ayahNumber",
+        arabic_text AS "arabicText",
+        turkish_meal AS "turkishMeal"
+      FROM ayahs
+      WHERE id = :id
+      LIMIT 1;
+    `;
+
+    const rows = await this.runRawQuery<Ayah>(sql, { id });
+    return rows[0] ?? null;
+  }
 }

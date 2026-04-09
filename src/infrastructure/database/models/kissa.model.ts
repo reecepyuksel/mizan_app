@@ -18,6 +18,10 @@ import {
       using: "gin",
       fields: ["search_vector"],
     },
+    {
+      name: "kissas_updated_at_idx",
+      fields: ["updated_at"],
+    },
   ],
 })
 export class KissaModel extends Model {
