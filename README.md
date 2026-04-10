@@ -165,8 +165,12 @@ PERF_SEARCH_TERM=rahmet
 - `GET /api/search/kissas?q=sabir&limit=20`
 - `GET /api/prayer-times/daily?lat=41.0082&lon=28.9784&date=2026-04-09`
 - `GET /api/prayer-times/range?lat=41.0082&lon=28.9784&startDate=2026-04-09&days=7`
+- `GET /api/content/quran-pages?page=1&includeMeal=false`
+- `GET /api/content/quran-pages?page=1&includeMeal=true`
+- `GET /api/content/quran-pages/meal?page=1`
 - `GET /api/content/ayahs?surahNumber=1&page=1&limit=20`
 - `GET /api/content/ayahs/:id`
+- `GET /api/content/ayahs/reference?surahNumber=2&ayahNumber=255&includeMeal=true`
 - `GET /api/content/hadiths?page=1&limit=20`
 - `GET /api/content/hadiths/:id`
 - `GET /api/sync/pull?deviceId=device_abc_123&lastPulledAt=0`

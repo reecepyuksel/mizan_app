@@ -2,21 +2,64 @@ import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { GetAyahByIdUseCase } from "../../application/use-cases/get-ayah-by-id.use-case";
+import { GetAyahByReferenceUseCase } from "../../application/use-cases/get-ayah-by-reference.use-case";
 import { GetHadithByIdUseCase } from "../../application/use-cases/get-hadith-by-id.use-case";
 import { ListAyahsUseCase } from "../../application/use-cases/list-ayahs.use-case";
 import { ListHadithsUseCase } from "../../application/use-cases/list-hadiths.use-case";
+import { ListQuranPageUseCase } from "../../application/use-cases/list-quran-page.use-case";
 import { AyahListQueryDto } from "../dto/ayah-list-query.dto";
+import { AyahReferenceQueryDto } from "../dto/ayah-reference-query.dto";
 import { HadithListQueryDto } from "../dto/hadith-list-query.dto";
+import { QuranPageQueryDto } from "../dto/quran-page-query.dto";
 
 @Controller("content")
 @ApiTags("Content")
 export class ContentController {
   public constructor(
     private readonly listAyahsUseCase: ListAyahsUseCase,
+    private readonly listQuranPageUseCase: ListQuranPageUseCase,
     private readonly getAyahByIdUseCase: GetAyahByIdUseCase,
+    private readonly getAyahByReferenceUseCase: GetAyahByReferenceUseCase,
     private readonly listHadithsUseCase: ListHadithsUseCase,
     private readonly getHadithByIdUseCase: GetHadithByIdUseCase,
   ) {}
+
+  @Get("quran-pages")
+  @ApiOperation({
+    summary: "Kur'an sayfa okuma listesi (Arapca + opsiyonel meal)",
+  })
+  @ApiOkResponse({ description: "Sayfa bazli ayet listesi" })
+  public listQuranPages(@Query() query: QuranPageQueryDto) {
+    return this.listQuranPageUseCase.execute({
+      page: query.page,
+      includeMeal: query.includeMeal,
+    });
+  }
+
+  @Get("quran-pages/meal")
+  @ApiOperation({ summary: "Mushaf sayfasinin komple Turkce meali" })
+  @ApiOkResponse({ description: "Sayfa bazli toplu meal" })
+  public async getQuranPageMeal(@Query() query: QuranPageQueryDto) {
+    const pageData = await this.listQuranPageUseCase.execute({
+      page: query.page,
+      includeMeal: true,
+    });
+
+    const mealItems = pageData.items.map((item) => ({
+      surahNumber: item.surahNumber,
+      ayahNumber: item.ayahNumber,
+      turkishMeal: item.turkishMeal ?? "",
+    }));
+
+    return {
+      page: pageData.page,
+      firstAyah: pageData.firstAyah,
+      lastAyah: pageData.lastAyah,
+      ayahCount: pageData.ayahCount,
+      fullMealText: mealItems.map((item) => item.turkishMeal).join("\n"),
+      items: mealItems,
+    };
+  }
 
   @Get("ayahs")
   @ApiOperation({ summary: "Ayet listeleme" })
@@ -35,6 +78,17 @@ export class ContentController {
   @ApiOkResponse({ description: "Ayet detayi" })
   public getAyahById(@Param("id") id: string) {
     return this.getAyahByIdUseCase.execute(id);
+  }
+
+  @Get("ayahs/reference")
+  @ApiOperation({ summary: "Sure + ayet numarasiyla ayet detayi" })
+  @ApiOkResponse({ description: "Ayet detayi (opsiyonel meal)" })
+  public getAyahByReference(@Query() query: AyahReferenceQueryDto) {
+    return this.getAyahByReferenceUseCase.execute({
+      surahNumber: query.surahNumber,
+      ayahNumber: query.ayahNumber,
+      includeMeal: query.includeMeal,
+    });
   }
 
   @Get("hadiths")

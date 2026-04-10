@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 
 import { InfrastructureModule } from "../infrastructure/infrastructure.module";
 import { GetAyahByIdUseCase } from "./use-cases/get-ayah-by-id.use-case";
+import { GetAyahByReferenceUseCase } from "./use-cases/get-ayah-by-reference.use-case";
 import { GetDailyPrayerTimesUseCase } from "./use-cases/get-daily-prayer-times.use-case";
 import { GetHadithByIdUseCase } from "./use-cases/get-hadith-by-id.use-case";
 import { GetPrayerTimesRangeUseCase } from "./use-cases/get-prayer-times-range.use-case";
@@ -10,6 +11,7 @@ import { EnqueueNotificationUseCase } from "./use-cases/enqueue-notification.use
 import { EnqueueSilentSyncNotificationUseCase } from "./use-cases/enqueue-silent-sync-notification.use-case";
 import { ListAyahsUseCase } from "./use-cases/list-ayahs.use-case";
 import { ListHadithsUseCase } from "./use-cases/list-hadiths.use-case";
+import { ListQuranPageUseCase } from "./use-cases/list-quran-page.use-case";
 import { PullMobileSyncUseCase } from "./use-cases/pull-mobile-sync.use-case";
 import { PushMobileSyncUseCase } from "./use-cases/push-mobile-sync.use-case";
 import { RegisterNotificationDeviceUseCase } from "./use-cases/register-notification-device.use-case";
@@ -26,7 +28,9 @@ import { SearchKissaUseCase } from "./use-cases/search-kissa.use-case";
     GetDailyPrayerTimesUseCase,
     GetPrayerTimesRangeUseCase,
     ListAyahsUseCase,
+    ListQuranPageUseCase,
     GetAyahByIdUseCase,
+    GetAyahByReferenceUseCase,
     ListHadithsUseCase,
     GetHadithByIdUseCase,
     GetQiblaDirectionUseCase,
@@ -43,7 +47,9 @@ import { SearchKissaUseCase } from "./use-cases/search-kissa.use-case";
     GetDailyPrayerTimesUseCase,
     GetPrayerTimesRangeUseCase,
     ListAyahsUseCase,
+    ListQuranPageUseCase,
     GetAyahByIdUseCase,
+    GetAyahByReferenceUseCase,
     ListHadithsUseCase,
     GetHadithByIdUseCase,
     GetQiblaDirectionUseCase,
