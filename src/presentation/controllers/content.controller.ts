@@ -4,13 +4,16 @@ import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { GetAyahByIdUseCase } from "../../application/use-cases/get-ayah-by-id.use-case";
 import { GetAyahByReferenceUseCase } from "../../application/use-cases/get-ayah-by-reference.use-case";
 import { GetHadithByIdUseCase } from "../../application/use-cases/get-hadith-by-id.use-case";
+import { GetSirahByIdUseCase } from "../../application/use-cases/get-sirah-by-id.use-case";
 import { ListAyahsUseCase } from "../../application/use-cases/list-ayahs.use-case";
 import { ListHadithsUseCase } from "../../application/use-cases/list-hadiths.use-case";
 import { ListQuranPageUseCase } from "../../application/use-cases/list-quran-page.use-case";
+import { ListSirahsUseCase } from "../../application/use-cases/list-sirahs.use-case";
 import { AyahListQueryDto } from "../dto/ayah-list-query.dto";
 import { AyahReferenceQueryDto } from "../dto/ayah-reference-query.dto";
 import { HadithListQueryDto } from "../dto/hadith-list-query.dto";
 import { QuranPageQueryDto } from "../dto/quran-page-query.dto";
+import { SirahListQueryDto } from "../dto/sirah-list-query.dto";
 
 @Controller("content")
 @ApiTags("Content")
@@ -22,6 +25,8 @@ export class ContentController {
     private readonly getAyahByReferenceUseCase: GetAyahByReferenceUseCase,
     private readonly listHadithsUseCase: ListHadithsUseCase,
     private readonly getHadithByIdUseCase: GetHadithByIdUseCase,
+    private readonly listSirahsUseCase: ListSirahsUseCase,
+    private readonly getSirahByIdUseCase: GetSirahByIdUseCase,
   ) {}
 
   @Get("quran-pages")
@@ -104,5 +109,25 @@ export class ContentController {
   @ApiOkResponse({ description: "Hadis detayi" })
   public getHadithById(@Param("id") id: string) {
     return this.getHadithByIdUseCase.execute(id);
+  }
+
+  @Get("sirahs")
+  @ApiOperation({ summary: "Siyer listeleme" })
+  @ApiOkResponse({ description: "Siyer listesi" })
+  public listSirahs(@Query() query: SirahListQueryDto) {
+    const offset = (query.page - 1) * query.limit;
+    return this.listSirahsUseCase.execute(
+      query.limit,
+      offset,
+      query.partTitle,
+      query.unitNumber,
+    );
+  }
+
+  @Get("sirahs/:id")
+  @ApiOperation({ summary: "ID ile siyer detayi" })
+  @ApiOkResponse({ description: "Siyer detayi" })
+  public getSirahById(@Param("id") id: string) {
+    return this.getSirahByIdUseCase.execute(id);
   }
 }

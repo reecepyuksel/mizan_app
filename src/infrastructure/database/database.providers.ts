@@ -7,6 +7,7 @@ import { AyahModel } from "./models/ayah.model";
 import { HadithModel } from "./models/hadith.model";
 import { KissaModel } from "./models/kissa.model";
 import { NotificationDeviceModel } from "./models/notification-device.model";
+import { SirahModel } from "./models/sirah.model";
 import { UserFavoriteModel } from "./models/user-favorite.model";
 import { UserNoteModel } from "./models/user-note.model";
 
@@ -27,6 +28,7 @@ export const databaseProviders: Provider[] = [
           AyahModel,
           HadithModel,
           KissaModel,
+          SirahModel,
           NotificationDeviceModel,
           UserFavoriteModel,
           UserNoteModel,

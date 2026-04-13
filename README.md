@@ -15,6 +15,7 @@ Clean Architecture 4 katman:
 
 - Tum tablolarda birincil anahtar UUID'dir.
 - `ayahs`, `hadiths`, `kissas` tablolarinda `search_vector` (tsvector) kolonu vardir.
+- `sirahs` tablosunda da `search_vector` (tsvector) kolonu vardir.
 - GIN index stratejisi uygulanmistir.
 - Kayit ekleme/guncellemede `search_vector` alanlari trigger fonksiyonlariyla otomatik doldurulur.
 - Sequelize sorgularinda performans icin ham sonuc (`raw`) kullanimi standartlastirilmistir.
@@ -86,13 +87,31 @@ QURAN_SOURCE=/path/to/quran.xml QURAN_MEAL_SOURCE=/path/to/quran-meal.json HADIT
 npm run start:dev
 ```
 
-5. Swagger dokumantasyonunu ac:
+5. Siyer JSON verisini PostgreSQL'e aktar:
+
+```bash
+npm run content:siyer:import
+```
+
+Istersen farkli kaynak dosya verebilirsin:
+
+```bash
+SIRAH_SOURCE=/path/to/siyer-nebi.json npm run content:siyer:import
+```
+
+Mevcut siyer kayitlarini temizleyip yeniden basmak icin:
+
+```bash
+SIRAH_IMPORT_TRUNCATE=true npm run content:siyer:import
+```
+
+6. Swagger dokumantasyonunu ac:
 
 ```bash
 http://localhost:3000/api/docs
 ```
 
-6. Derleme:
+7. Derleme:
 
 ```bash
 npm run build
@@ -163,6 +182,7 @@ PERF_SEARCH_TERM=rahmet
 - `GET /api/search/ayahs?q=rahmet&limit=20`
 - `GET /api/search/hadiths?q=merhamet&limit=20`
 - `GET /api/search/kissas?q=sabir&limit=20`
+- `GET /api/search/sirahs?q=hicret&limit=20`
 - `GET /api/prayer-times/daily?lat=41.0082&lon=28.9784&date=2026-04-09`
 - `GET /api/prayer-times/range?lat=41.0082&lon=28.9784&startDate=2026-04-09&days=7`
 - `GET /api/content/quran-pages?page=1&includeMeal=false`
@@ -173,6 +193,9 @@ PERF_SEARCH_TERM=rahmet
 - `GET /api/content/ayahs/reference?surahNumber=2&ayahNumber=255&includeMeal=true`
 - `GET /api/content/hadiths?page=1&limit=20`
 - `GET /api/content/hadiths/:id`
+- `GET /api/content/sirahs?page=1&limit=20`
+- `GET /api/content/sirahs?partTitle=MEKKE%20DEVR%C4%B0&unitNumber=IV&page=1&limit=20`
+- `GET /api/content/sirahs/:id`
 - `GET /api/sync/pull?deviceId=device_abc_123&lastPulledAt=0`
 - `POST /api/sync/push`
 - `POST /api/notifications/devices/register`

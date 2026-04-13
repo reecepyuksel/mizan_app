@@ -15,6 +15,7 @@
     "redis:logs": "docker compose logs -f redis",
     "db:bulk-import": "ts-node src/scripts/bulk-import.ts",
     "content:siyer:extract": "ts-node src/scripts/extract-siyer.ts",
+    "content:siyer:import": "ts-node src/scripts/import-siyer.ts",
     "perf:db": "ts-node src/scripts/db-performance-report.ts",
     "perf:load:search": "node scripts/load-test.js search",
     "perf:load:prayer": "node scripts/load-test.js prayer",
@@ -26,6 +27,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "ts-node": {
+    "files": true
+  },
   "dependencies": {
     "@nestjs/common": "^11.1.18",
     "@nestjs/config": "^4.0.3",
@@ -40,6 +44,7 @@
     "ioredis": "^5.10.1",
     "pg": "^8.20.0",
     "pg-hstore": "^2.3.4",
+    "quran-meta": "^6.0.17",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "sequelize": "^6.37.8",

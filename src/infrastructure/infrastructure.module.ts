@@ -4,6 +4,7 @@ import {
   AYAH_REPOSITORY,
   HADITH_REPOSITORY,
   KISSA_REPOSITORY,
+  SIRAH_REPOSITORY,
 } from "../application/ports/repositories/repository.tokens";
 import {
   MOBILE_SYNC_SERVICE,
@@ -17,6 +18,7 @@ import { DatabaseModule } from "./database/database.module";
 import { AyahSequelizeRepository } from "./database/repositories/ayah-sequelize.repository";
 import { HadithSequelizeRepository } from "./database/repositories/hadith-sequelize.repository";
 import { KissaSequelizeRepository } from "./database/repositories/kissa-sequelize.repository";
+import { SirahSequelizeRepository } from "./database/repositories/sirah-sequelize.repository";
 import { BullmqNotificationQueueService } from "./notification/bullmq-notification-queue.service";
 import { FcmPushNotificationService } from "./notification/fcm-push-notification.service";
 import { NotificationDeviceRegistryService } from "./notification/notification-device-registry.service";
@@ -39,6 +41,10 @@ import { WatermelonSyncService } from "./sync/watermelon-sync.service";
     {
       provide: KISSA_REPOSITORY,
       useClass: KissaSequelizeRepository,
+    },
+    {
+      provide: SIRAH_REPOSITORY,
+      useClass: SirahSequelizeRepository,
     },
     {
       provide: PRAYER_TIME_CALCULATOR,
@@ -70,6 +76,7 @@ import { WatermelonSyncService } from "./sync/watermelon-sync.service";
     AYAH_REPOSITORY,
     HADITH_REPOSITORY,
     KISSA_REPOSITORY,
+    SIRAH_REPOSITORY,
     PRAYER_TIME_CALCULATOR,
     QIBLA_CALCULATOR,
     MOBILE_SYNC_SERVICE,

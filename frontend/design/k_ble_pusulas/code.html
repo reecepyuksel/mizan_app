@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#071e27",
+                    "tertiary-fixed": "#fbe0a5",
+                    "primary-container": "#064e3b",
+                    "secondary-container": "#cfe6f2",
+                    "surface-container": "#efeeea",
+                    "secondary-fixed-dim": "#b4cad6",
+                    "error-container": "#ffdad6",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1b1c1a",
+                    "primary": "#003527",
+                    "background": "#fbf9f5",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#0b513d",
+                    "outline": "#707974",
+                    "surface-tint": "#2b6954",
+                    "on-secondary-container": "#526772",
+                    "on-tertiary-container": "#c8af78",
+                    "surface-variant": "#e4e2de",
+                    "on-surface": "#1b1c1a",
+                    "secondary-fixed": "#cfe6f2",
+                    "on-tertiary-fixed": "#251a00",
+                    "tertiary-container": "#534216",
+                    "inverse-on-surface": "#f2f0ed",
+                    "on-error": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface-variant": "#404944",
+                    "on-secondary-fixed-variant": "#354a53",
+                    "on-tertiary-fixed-variant": "#564418",
+                    "surface-container-highest": "#e4e2de",
+                    "on-primary-fixed": "#002117",
+                    "surface-dim": "#dbdad6",
+                    "inverse-surface": "#30312e",
+                    "primary-fixed": "#b0f0d6",
+                    "tertiary-fixed-dim": "#dec48b",
+                    "on-primary-container": "#80bea6",
+                    "surface": "#fbf9f5",
+                    "tertiary": "#3b2c02",
+                    "error": "#ba1a1a",
+                    "secondary": "#4c616c",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#95d3ba",
+                    "surface-container-low": "#f5f3ef",
+                    "surface-bright": "#fbf9f5",
+                    "outline-variant": "#bfc9c3",
+                    "surface-container-high": "#eae8e4",
+                    "inverse-primary": "#95d3ba"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .compass-ring {
+            transform: rotate(-45deg);
+        }
+        .qibla-arrow {
+            transform: rotate(45deg);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed-dim">
+<!-- TopAppBar -->
+<header class="bg-[#fbf9f5] dark:bg-emerald-950/80 docked full-width top-0 z-50 tonal-transition flex justify-between items-center w-full px-6 py-4 backdrop-blur-xl sticky">
+<div class="flex items-center gap-4">
+<button class="text-emerald-900 dark:text-emerald-50 hover:bg-emerald-100/50 dark:hover:bg-emerald-800/50 transition-colors p-2 rounded-full Active: scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Noto_Serif'] text-xl tracking-tight text-emerald-900 dark:text-emerald-50">Kıble Pusulası</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-emerald-900 dark:text-emerald-50 hover:bg-emerald-100/50 dark:hover:bg-emerald-800/50 transition-colors p-2 rounded-full Active: scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="min-h-screen pb-32 flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Subtle background texture -->
+<div class="absolute inset-0 opacity-5 pointer-events-none">
+<div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]"></div>
+</div>
+<!-- Section: Editorial Headline -->
+<div class="w-full max-w-lg px-8 mb-12 self-start md:self-center">
+<h2 class="font-headline text-3xl font-bold text-primary tracking-tight leading-tight">Yönünüzü Tayin Edin</h2>
+<p class="text-secondary font-medium mt-2">Kabe-i Muazzama’ya yönelmek için rehberiniz.</p>
+</div>
+<!-- Compass Container -->
+<div class="relative w-72 h-72 md:w-96 md:h-96 flex items-center justify-center">
+<!-- Glassmorphic Outer Ring -->
+<div class="absolute inset-0 rounded-full border border-primary/5 bg-surface-container-low/30 backdrop-blur-sm shadow-xl"></div>
+<!-- Degree Markers (Decorative) -->
+<div class="absolute inset-2 border-2 border-dashed border-outline-variant/30 rounded-full"></div>
+<!-- Rotating Compass Body -->
+<div class="compass-ring relative w-full h-full transition-transform duration-1000 ease-in-out">
+<!-- Points of Compass -->
+<div class="absolute top-4 left-1/2 -translate-x-1/2 font-label text-xs tracking-widest text-secondary opacity-40">N</div>
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 font-label text-xs tracking-widest text-secondary opacity-40">S</div>
+<div class="absolute left-4 top-1/2 -translate-y-1/2 font-label text-xs tracking-widest text-secondary opacity-40">W</div>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 font-label text-xs tracking-widest text-secondary opacity-40">E</div>
+<!-- Central Medallion -->
+<div class="absolute inset-12 md:inset-16 rounded-full bg-surface-container-lowest shadow-2xl flex items-center justify-center">
+<div class="w-full h-full rounded-full border-4 border-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-surface-tint text-4xl md:text-5xl" style="font-variation-settings: 'FILL' 1;">explore</span>
+</div>
+</div>
+<!-- Qibla Arrow Pointer -->
+<div class="qibla-arrow absolute inset-0 transition-transform duration-500 flex flex-col items-center justify-start pt-2">
+<div class="w-1.5 h-16 md:h-24 bg-gradient-to-t from-primary to-surface-tint rounded-full shadow-lg relative">
+<!-- Head -->
+<div class="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 bg-surface-tint rotate-45 rounded-sm shadow-sm"></div>
+<!-- Qibla Icon -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-primary-container" data-icon="mosque" style="font-variation-settings: 'FILL' 1;">mosque</span>
+<span class="text-[10px] font-bold text-primary-container uppercase tracking-tighter">Kıble Yönü</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Information Card -->
+<div class="mt-12 text-center animate-fade-in">
+<div class="inline-flex items-center gap-3 bg-primary-container text-on-primary-container px-6 py-3 rounded-full shadow-lg mb-6">
+<span class="material-symbols-outlined text-xl" data-icon="rotate_right">rotate_right</span>
+<span class="font-label font-semibold tracking-wide">Kıbleye 45° kaldınız</span>
+</div>
+<div class="flex flex-col items-center gap-4">
+<p class="text-secondary-fixed-variant text-sm font-medium px-12 italic">
+                    "Göklerin ve yerin mülkü Allah'ındır. Nereye dönerseniz dönün, Allah'ın vechi ordadır."
+                </p>
+<button class="flex items-center gap-2 text-primary font-bold hover:opacity-80 transition-opacity mt-2">
+<span class="material-symbols-outlined text-xl" data-icon="map">map</span>
+<span>Harita Görünümü</span>
+</button>
+</div>
+</div>
+<!-- Modal Overlay: Location Permission Missing -->
+<div class="fixed inset-0 z-[60] bg-primary/20 backdrop-blur-md flex items-end md:items-center justify-center p-4">
+<div class="bg-surface-container-lowest w-full max-w-md rounded-[2rem] shadow-2xl p-8 transform translate-y-0 transition-transform duration-500">
+<div class="w-16 h-16 bg-secondary-container text-secondary flex items-center justify-center rounded-2xl mb-6">
+<span class="material-symbols-outlined text-3xl" data-icon="location_off">location_off</span>
+</div>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-3">Konum İzni Gerekli</h3>
+<p class="text-secondary-fixed-variant leading-relaxed mb-8">Kıble yönünü en doğru şekilde hesaplayıp göstermek için konum izninize ihtiyacımız var. Verileriniz yalnızca pusula hassasiyeti için kullanılır.</p>
+<div class="flex flex-col gap-3">
+<button class="w-full bg-gradient-to-br from-[#003527] to-[#064e3b] text-white font-semibold py-4 rounded-full shadow-lg shadow-primary/20 transition-all active:scale-95">
+                        Konum İzni Ver
+                    </button>
+<button class="w-full text-secondary font-medium py-3 rounded-full hover:bg-surface-container-low transition-colors">
+                        Daha Sonra
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-3 backdrop-blur-2xl bg-[#fbf9f5]/80 dark:bg-emerald-950/90 rounded-t-3xl shadow-[0px_-12px_32px_rgba(31,41,55,0.05)]">
+<div class="flex flex-col items-center justify-center text-emerald-800/50 dark:text-emerald-200/40 px-5 py-2.5 transition-all duration-300 ease-out">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">Ana Sayfa</span>
+</div>
+<div class="flex flex-col items-center justify-center text-emerald-800/50 dark:text-emerald-200/40 px-5 py-2.5 transition-all duration-300 ease-out">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">Kur'an</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-gradient-to-br from-[#003527] to-[#064e3b] text-white rounded-2xl px-5 py-2.5 shadow-lg scale-110">
+<span class="material-symbols-outlined" data-icon="explore" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">Kıble</span>
+</div>
+<div class="flex flex-col items-center justify-center text-emerald-800/50 dark:text-emerald-200/40 px-5 py-2.5 transition-all duration-300 ease-out">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">Diğer</span>
+</div>
+</nav>
+<!-- Map View Background (Decorative / Concealed until active) -->
+<div class="fixed inset-0 -z-10 opacity-20 filter grayscale contrast-125">
+<div class="absolute inset-0 bg-primary/10"></div>
+<img class="w-full h-full object-cover" data-alt="minimalist architectural map view of mecca surroundings with high contrast lines and muted emerald tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ2-f-gGBW_CA-6PIR1Vgd-H-rNDpSimD514jU0WD0w34ixQBevemtpuayt04EicQny5P3Qqh4WNfivA2r9vFBp1tEWREHz_RthZ17gTfKmPbCeKLhuqA5oUy1eOIpgYFxMLriACByiClVu9eg763jC8Ca8_hp2JdJki3E74kLtYxWlFtqKAwuXd_o2RBEX9ol8JhUmAO8fxNTsMSl5ewGjnEmn94_vUUtJHjEh-OeE3B9Iwpt5M8ZRMIuEoBfPoIb4oW4S_LldWc"/>
+</div>
+</body></html>

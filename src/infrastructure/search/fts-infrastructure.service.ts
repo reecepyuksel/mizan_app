@@ -179,6 +179,20 @@ export class FtsInfrastructureService {
       END;
       $$ LANGUAGE plpgsql;
 
+      CREATE OR REPLACE FUNCTION set_sirah_search_vector()
+      RETURNS trigger AS
+      $$
+      BEGIN
+        NEW.search_vector :=
+          setweight(to_tsvector('mizan_tr', COALESCE(NEW.title, '')), 'A') ||
+          setweight(to_tsvector('mizan_tr', COALESCE(NEW.summary, '')), 'B') ||
+          setweight(to_tsvector('mizan_tr', COALESCE(NEW.content, '')), 'C') ||
+          setweight(to_tsvector('mizan_tr', COALESCE(NEW.part_title, '')), 'B') ||
+          setweight(to_tsvector('mizan_tr', COALESCE(NEW.unit_title, '')), 'B');
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+
       DROP TRIGGER IF EXISTS ayahs_search_vector_trigger ON ayahs;
       CREATE TRIGGER ayahs_search_vector_trigger
       BEFORE INSERT OR UPDATE OF arabic_text, turkish_meal ON ayahs
@@ -194,6 +208,11 @@ export class FtsInfrastructureService {
       BEFORE INSERT OR UPDATE OF title, content ON kissas
       FOR EACH ROW EXECUTE FUNCTION set_kissa_search_vector();
 
+      DROP TRIGGER IF EXISTS sirahs_search_vector_trigger ON sirahs;
+      CREATE TRIGGER sirahs_search_vector_trigger
+      BEFORE INSERT OR UPDATE OF title, summary, content, part_title, unit_title ON sirahs
+      FOR EACH ROW EXECUTE FUNCTION set_sirah_search_vector();
+
       CREATE INDEX IF NOT EXISTS ayahs_search_vector_gin_idx ON ayahs USING GIN (search_vector);
       CREATE INDEX IF NOT EXISTS hadiths_search_vector_gin_idx ON hadiths USING GIN (search_vector);
       CREATE INDEX IF NOT EXISTS kissas_search_vector_gin_idx ON kissas USING GIN (search_vector);
@@ -202,6 +221,9 @@ export class FtsInfrastructureService {
       CREATE INDEX IF NOT EXISTS hadiths_source_id_idx ON hadiths (source, id);
       CREATE INDEX IF NOT EXISTS hadiths_updated_at_idx ON hadiths (updated_at);
       CREATE INDEX IF NOT EXISTS kissas_updated_at_idx ON kissas (updated_at);
+      CREATE INDEX IF NOT EXISTS sirahs_search_vector_gin_idx ON sirahs USING GIN (search_vector);
+      CREATE INDEX IF NOT EXISTS sirahs_part_unit_order_idx ON sirahs (part_title, unit_number, "order");
+      CREATE INDEX IF NOT EXISTS sirahs_updated_at_idx ON sirahs (updated_at);
       CREATE INDEX IF NOT EXISTS user_favorites_device_updated_idx ON user_favorites (device_id, updated_at);
       CREATE INDEX IF NOT EXISTS user_notes_device_updated_idx ON user_notes (device_id, updated_at);
       CREATE INDEX IF NOT EXISTS notification_devices_device_active_idx ON notification_devices (device_id, is_active);
@@ -222,6 +244,15 @@ export class FtsInfrastructureService {
       SET search_vector =
         setweight(to_tsvector('mizan_tr', COALESCE(title, '')), 'A') ||
         setweight(to_tsvector('mizan_tr', COALESCE(content, '')), 'B')
+      WHERE search_vector IS NULL;
+
+      UPDATE sirahs
+      SET search_vector =
+        setweight(to_tsvector('mizan_tr', COALESCE(title, '')), 'A') ||
+        setweight(to_tsvector('mizan_tr', COALESCE(summary, '')), 'B') ||
+        setweight(to_tsvector('mizan_tr', COALESCE(content, '')), 'C') ||
+        setweight(to_tsvector('mizan_tr', COALESCE(part_title, '')), 'B') ||
+        setweight(to_tsvector('mizan_tr', COALESCE(unit_title, '')), 'B')
       WHERE search_vector IS NULL;
       `,
       { type: QueryTypes.RAW },

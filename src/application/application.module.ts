@@ -12,12 +12,15 @@ import { EnqueueSilentSyncNotificationUseCase } from "./use-cases/enqueue-silent
 import { ListAyahsUseCase } from "./use-cases/list-ayahs.use-case";
 import { ListHadithsUseCase } from "./use-cases/list-hadiths.use-case";
 import { ListQuranPageUseCase } from "./use-cases/list-quran-page.use-case";
+import { ListSirahsUseCase } from "./use-cases/list-sirahs.use-case";
 import { PullMobileSyncUseCase } from "./use-cases/pull-mobile-sync.use-case";
 import { PushMobileSyncUseCase } from "./use-cases/push-mobile-sync.use-case";
 import { RegisterNotificationDeviceUseCase } from "./use-cases/register-notification-device.use-case";
 import { SearchAyahUseCase } from "./use-cases/search-ayah.use-case";
 import { SearchHadithUseCase } from "./use-cases/search-hadith.use-case";
 import { SearchKissaUseCase } from "./use-cases/search-kissa.use-case";
+import { SearchSirahUseCase } from "./use-cases/search-sirah.use-case";
+import { GetSirahByIdUseCase } from "./use-cases/get-sirah-by-id.use-case";
 
 @Module({
   imports: [InfrastructureModule],
@@ -25,6 +28,7 @@ import { SearchKissaUseCase } from "./use-cases/search-kissa.use-case";
     SearchAyahUseCase,
     SearchHadithUseCase,
     SearchKissaUseCase,
+    SearchSirahUseCase,
     GetDailyPrayerTimesUseCase,
     GetPrayerTimesRangeUseCase,
     ListAyahsUseCase,
@@ -32,7 +36,9 @@ import { SearchKissaUseCase } from "./use-cases/search-kissa.use-case";
     GetAyahByIdUseCase,
     GetAyahByReferenceUseCase,
     ListHadithsUseCase,
+    ListSirahsUseCase,
     GetHadithByIdUseCase,
+    GetSirahByIdUseCase,
     GetQiblaDirectionUseCase,
     PullMobileSyncUseCase,
     PushMobileSyncUseCase,
@@ -44,6 +50,7 @@ import { SearchKissaUseCase } from "./use-cases/search-kissa.use-case";
     SearchAyahUseCase,
     SearchHadithUseCase,
     SearchKissaUseCase,
+    SearchSirahUseCase,
     GetDailyPrayerTimesUseCase,
     GetPrayerTimesRangeUseCase,
     ListAyahsUseCase,
@@ -51,7 +58,9 @@ import { SearchKissaUseCase } from "./use-cases/search-kissa.use-case";
     GetAyahByIdUseCase,
     GetAyahByReferenceUseCase,
     ListHadithsUseCase,
+    ListSirahsUseCase,
     GetHadithByIdUseCase,
+    GetSirahByIdUseCase,
     GetQiblaDirectionUseCase,
     PullMobileSyncUseCase,
     PushMobileSyncUseCase,

@@ -1,9 +1,13 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { getPageMeta } from "quran-meta/hafs";
 
 import { Ayah } from "../../domain/entities/ayah.entity";
 import { AyahRepositoryPort } from "../ports/repositories/ayah-repository.port";
 import { AYAH_REPOSITORY } from "../ports/repositories/repository.tokens";
+
+interface QuranMetaPage {
+  first: [number, number];
+  last: [number, number];
+}
 
 export interface QuranPageAyah {
   id: string;
@@ -32,7 +36,7 @@ export class ListQuranPageUseCase {
     page: number;
     includeMeal: boolean;
   }): Promise<QuranPageResponse> {
-    const pageMeta = getPageMeta(input.page);
+    const pageMeta = await getQuranPageMeta(input.page);
     const [firstSurah, firstAyah] = pageMeta.first;
     const [lastSurah, lastAyah] = pageMeta.last;
 
@@ -71,4 +75,12 @@ export class ListQuranPageUseCase {
       ...(includeMeal ? { turkishMeal: ayah.turkishMeal } : {}),
     };
   }
+}
+
+async function getQuranPageMeta(page: number): Promise<QuranMetaPage> {
+  const quranMetaModule = (await import("quran-meta/hafs")) as {
+    getPageMeta: (pageNumber: number) => QuranMetaPage;
+  };
+
+  return quranMetaModule.getPageMeta(page);
 }
