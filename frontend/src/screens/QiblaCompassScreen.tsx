@@ -1,167 +1,272 @@
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { getQiblaDirection, type QiblaDirection } from "../api/mizan";
-import { BottomNav } from "../components/BottomNav";
-import { TopBar } from "../components/TopBar";
-import { colors } from "../theme";
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { Magnetometer } from "expo-sensors";
+import { useLocation } from "../context/LocationContext";
+import { calculateDistanceToKaaba, formatDistance, KAABA_COORDS } from "../api/mizan";
+
+function calculateQiblaAngle(lat: number, lon: number): number {
+  const lat1 = (lat * Math.PI) / 180;
+  const lon1 = (lon * Math.PI) / 180;
+  const lat2 = (KAABA_COORDS.lat * Math.PI) / 180;
+  const lon2 = (KAABA_COORDS.lon * Math.PI) / 180;
+
+  const dLon = lon2 - lon1;
+  const y = Math.sin(dLon) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  let angle = (Math.atan2(y, x) * 180) / Math.PI;
+  return (angle + 360) % 360;
+}
+
+function getCompassHeading(magnetometer: { x: number; y: number; z: number }): number {
+  let angle = Math.atan2(magnetometer.y, magnetometer.x) * (180 / Math.PI);
+  // Adjust for device orientation
+  if (Platform.OS === "ios") {
+    angle = angle + 90;
+  }
+  return (angle + 360) % 360;
+}
 
 export function QiblaCompassScreen() {
-  const [direction, setDirection] = useState<QiblaDirection | null>(null);
-  const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const location = useLocation();
+  const [heading, setHeading] = useState(0);
+  const [qiblaAngle, setQiblaAngle] = useState(0);
+  const [distance, setDistance] = useState(0);
+  const [compassReady, setCompassReady] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
 
+  // Calculate qibla direction and distance when location is ready
   useEffect(() => {
-    let alive = true;
+    if (!location.granted) return;
+    const angle = calculateQiblaAngle(location.lat, location.lon);
+    setQiblaAngle(angle);
+    const dist = calculateDistanceToKaaba(location.lat, location.lon);
+    setDistance(dist);
+  }, [location.lat, location.lon, location.granted]);
 
-    const loadQibla = async () => {
-      try {
-        const payload = await getQiblaDirection();
-        if (alive) {
-          setDirection(payload);
-        }
-      } finally {
-        if (alive) {
-          setLoading(false);
-        }
+  // Start magnetometer for real compass
+  useEffect(() => {
+    if (!permissionGranted) return;
+
+    let subscription: any;
+
+    (async () => {
+      const available = await Magnetometer.isAvailableAsync();
+      if (!available) {
+        console.warn("Magnetometer not available");
+        setCompassReady(true);
+        return;
       }
-    };
 
-    void loadQibla();
+      Magnetometer.setUpdateInterval(100);
+      subscription = Magnetometer.addListener((data) => {
+        const h = getCompassHeading(data);
+        setHeading(h);
+        setCompassReady(true);
+      });
+    })();
+
     return () => {
-      alive = false;
+      if (subscription) subscription.remove();
     };
-  }, []);
+  }, [permissionGranted]);
 
-  const angle = direction?.qiblaAzimuth ?? 151.5;
+  // The arrow should point to qibla relative to current heading
+  const arrowRotation = qiblaAngle - heading;
+
+  const handleGrantPermission = () => {
+    setPermissionGranted(true);
+  };
 
   return (
-    <View style={styles.page}>
-      <TopBar title="Kıble Pusulası" />
-      <View style={styles.content}>
-        <Text style={styles.head}>Yönünüzü Tayin Edin</Text>
-        <Text style={styles.sub}>
-          Kabe-i Muazzama'ya yönelmek için rehberiniz.
+    <View style={{ flex: 1, backgroundColor: '#fbf9f5', position: 'relative' }}>
+      {/* Top App Bar */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 24,
+          paddingVertical: 16,
+          paddingTop: insets.top + 16,
+          backgroundColor: '#f5f3ef',
+        }}
+      >
+        <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 20, color: '#064e3b' }}>
+          Kıble Pusulası
         </Text>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('NotificationSettings')}
+          style={{ padding: 8, borderRadius: 999 }}
+        >
+          <MaterialIcons name="notifications-none" size={24} color="#064e3b" />
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.compassWrap}>
-          <View style={styles.compass}>
-            <Text style={styles.dirTop}>N</Text>
-            <Text style={styles.dirRight}>E</Text>
-            <Text style={styles.dirBottom}>S</Text>
-            <Text style={styles.dirLeft}>W</Text>
-            <View style={styles.center}>
-              <Text style={styles.centerIcon}>⌖</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 100 }}>
+        {/* Headline */}
+        <View style={{ width: '100%', marginBottom: 48, alignItems: 'center' }}>
+          <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 28, color: '#003527', textAlign: 'center' }}>
+            Yönünüzü Tayin Edin
+          </Text>
+          <Text style={{ color: '#4c616c', fontFamily: 'Inter_500Medium', marginTop: 8, textAlign: 'center' }}>
+            {location.city}{location.country ? `, ${location.country}` : ''} konumundan yönlendirme
+          </Text>
+        </View>
+
+        {!permissionGranted || !compassReady ? (
+          <ActivityIndicator size="large" color="#003527" />
+        ) : (
+          <>
+            {/* Compass */}
+            <View style={{ position: 'relative', width: 288, height: 288, alignItems: 'center', justifyContent: 'center' }}>
+              {/* Outer ring */}
+              <View style={{
+                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                borderRadius: 144, borderWidth: 1, borderColor: 'rgba(0,53,39,0.05)',
+                backgroundColor: 'rgba(245,243,239,0.3)',
+              }} />
+              {/* Dashed inner ring */}
+              <View style={{
+                position: 'absolute', top: 8, left: 8, right: 8, bottom: 8,
+                borderRadius: 136, borderWidth: 2, borderStyle: 'dashed',
+                borderColor: 'rgba(191,201,195,0.3)',
+              }} />
+
+              {/* Cardinal directions - rotate with phone heading */}
+              <View style={{
+                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                alignItems: 'center', justifyContent: 'center',
+                transform: [{ rotate: `${-heading}deg` }],
+              }}>
+                <Text style={{ position: 'absolute', top: 16, fontSize: 13, fontFamily: 'Inter_600SemiBold', color: '#ba1a1a' }}>K</Text>
+                <Text style={{ position: 'absolute', bottom: 16, fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(76,97,108,0.4)' }}>G</Text>
+                <Text style={{ position: 'absolute', left: 16, fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(76,97,108,0.4)' }}>B</Text>
+                <Text style={{ position: 'absolute', right: 16, fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(76,97,108,0.4)' }}>D</Text>
+              </View>
+
+              {/* Inner Circle */}
+              <View style={{
+                position: 'absolute', top: 64, left: 64, right: 64, bottom: 64,
+                borderRadius: 80, backgroundColor: '#ffffff',
+                alignItems: 'center', justifyContent: 'center',
+                borderWidth: 4, borderColor: 'rgba(0,53,39,0.1)',
+              }}>
+                <MaterialIcons name="explore" size={48} color="#2b6954" />
+              </View>
+
+              {/* Qibla Arrow - rotates to point at Kaaba relative to heading */}
+              <View
+                style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                  alignItems: 'center', justifyContent: 'flex-start', paddingTop: 8,
+                  transform: [{ rotate: `${arrowRotation}deg` }],
+                }}
+              >
+                <View style={{ width: 6, height: 96, backgroundColor: '#003527', borderRadius: 999, position: 'relative', alignItems: 'center' }}>
+                  <View style={{ position: 'absolute', top: -4, width: 16, height: 16, backgroundColor: '#2b6954', borderRadius: 4, transform: [{ rotate: '45deg' }] }} />
+                  <View style={{ position: 'absolute', top: -48, alignItems: 'center' }}>
+                    <MaterialIcons name="mosque" size={20} color="#064e3b" />
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', color: '#064e3b', textTransform: 'uppercase', marginTop: 4 }}>Kıble</Text>
+                  </View>
+                </View>
+              </View>
             </View>
-            <View
-              style={[styles.arrow, { transform: [{ rotate: `${angle}deg` }] }]}
+
+            {/* Info Cards */}
+            <View style={{ marginTop: 40, alignItems: 'center', gap: 12 }}>
+              {/* Qibla Degree */}
+              <View style={{
+                flexDirection: 'row', alignItems: 'center', gap: 12,
+                backgroundColor: '#064e3b', paddingHorizontal: 24, paddingVertical: 12,
+                borderRadius: 999,
+              }}>
+                <MaterialIcons name="rotate-right" size={20} color="#80bea6" />
+                <Text style={{ fontFamily: 'Inter_600SemiBold', letterSpacing: 1, color: '#80bea6' }}>
+                  Kıble yönü: {qiblaAngle.toFixed(1)}°
+                </Text>
+              </View>
+
+              {/* Distance to Kaaba */}
+              <View style={{
+                flexDirection: 'row', alignItems: 'center', gap: 12,
+                backgroundColor: '#f5f3ef', paddingHorizontal: 24, paddingVertical: 12,
+                borderRadius: 999,
+              }}>
+                <MaterialIcons name="place" size={20} color="#003527" />
+                <Text style={{ fontFamily: 'Inter_600SemiBold', color: '#003527', fontSize: 14 }}>
+                  Kabe'ye uzaklık: {formatDistance(distance)}
+                </Text>
+              </View>
+
+              {/* Current heading */}
+              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, color: '#707974', marginTop: 8 }}>
+                Pusula yönünüz: {Math.round(heading)}°
+              </Text>
+            </View>
+
+            <Text style={{
+              color: '#4c616c', fontSize: 14, fontFamily: 'NotoSerif_400Regular',
+              fontStyle: 'italic', textAlign: 'center', paddingHorizontal: 32,
+              lineHeight: 22, marginTop: 32,
+            }}>
+              "Nereye dönerseniz dönün, Allah'ın vechi ordadır."
+            </Text>
+          </>
+        )}
+      </View>
+
+      {/* Permissions Modal */}
+      {!permissionGranted && (
+        <View style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,53,39,0.2)', zIndex: 50,
+          alignItems: 'center', justifyContent: 'center', padding: 16,
+        }}>
+          <View style={{
+            backgroundColor: '#ffffff', width: '100%', maxWidth: 400,
+            borderRadius: 32, padding: 32, alignItems: 'center',
+            shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 32,
+            shadowOffset: { width: 0, height: 16 },
+          }}>
+            <View style={{
+              width: 64, height: 64, backgroundColor: '#cfe6f2',
+              borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 24,
+            }}>
+              <MaterialIcons name="explore" size={32} color="#4c616c" />
+            </View>
+            <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 22, color: '#1b1c1a', marginBottom: 12, textAlign: 'center' }}>
+              Pusula İzni
+            </Text>
+            <Text style={{ color: '#4c616c', textAlign: 'center', lineHeight: 22, marginBottom: 32 }}>
+              Kıble yönünü canlı olarak göstermek için cihazınızın pusula sensörüne erişim izni gereklidir.
+            </Text>
+
+            <TouchableOpacity
+              style={{
+                width: '100%', backgroundColor: '#003527',
+                paddingVertical: 16, borderRadius: 999, alignItems: 'center', marginBottom: 12,
+              }}
+              onPress={handleGrantPermission}
             >
-              <Text style={styles.arrowHead}>▲</Text>
-            </View>
+              <Text style={{ color: '#ffffff', fontFamily: 'Inter_600SemiBold' }}>Pusulayı Aç</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                width: '100%', paddingVertical: 12, borderRadius: 999,
+                alignItems: 'center', backgroundColor: '#f5f3ef',
+              }}
+            >
+              <Text style={{ color: '#4c616c', fontFamily: 'Inter_500Medium' }}>Daha Sonra</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.info}>
-          {loading ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : null}
-          <Text style={styles.infoBadge}>
-            ↻ Kıble Açısı {angle.toFixed(1)}°
-          </Text>
-          <Text style={styles.verse}>
-            "Nereye dönerseniz dönün, Allah'ın vechi ordadır."
-          </Text>
-          <Text style={styles.map}>İstanbul koordinatlarıyla hesaplandı</Text>
-        </View>
-      </View>
-
-      <View style={styles.sheet}>
-        <Text style={styles.sheetTitle}>Canlı Kıble Verisi</Text>
-        <Text style={styles.sheetText}>
-          Backend üzerinden hesaplanan azimut değeri: {angle.toFixed(1)}°
-        </Text>
-        <TouchableOpacity style={styles.allow}>
-          <Text style={styles.allowText}>Harita Görünümü Yakında</Text>
-        </TouchableOpacity>
-        <Text style={styles.later}>Mekke doğrultusuna göre gösteriliyor</Text>
-      </View>
-      <BottomNav active="more" />
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.surface },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 16 },
-  head: {
-    fontSize: 34,
-    lineHeight: 40,
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  sub: { marginTop: 8, color: colors.secondary },
-  compassWrap: { marginTop: 20, alignItems: "center" },
-  compass: {
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dirTop: { position: "absolute", top: 14, color: colors.outline },
-  dirRight: { position: "absolute", right: 14, color: colors.outline },
-  dirBottom: { position: "absolute", bottom: 14, color: colors.outline },
-  dirLeft: { position: "absolute", left: 14, color: colors.outline },
-  center: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.white,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  centerIcon: { fontSize: 40, color: colors.primaryContainer },
-  arrow: { position: "absolute", top: 28 },
-  arrowHead: { color: colors.primary, fontSize: 30 },
-  info: { marginTop: 22, alignItems: "center" },
-  infoBadge: {
-    borderRadius: 999,
-    backgroundColor: colors.primaryContainer,
-    color: colors.white,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    fontWeight: "700",
-  },
-  verse: {
-    marginTop: 14,
-    textAlign: "center",
-    color: colors.onSurfaceVariant,
-    fontStyle: "italic",
-  },
-  map: { marginTop: 10, color: colors.primary, fontWeight: "700" },
-  sheet: {
-    marginTop: 20,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 20,
-    paddingBottom: 28,
-  },
-  sheetTitle: { fontSize: 30, color: colors.onSurface, fontWeight: "700" },
-  sheetText: { marginTop: 8, color: colors.secondary },
-  allow: {
-    marginTop: 16,
-    borderRadius: 999,
-    backgroundColor: colors.primary,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  allowText: { color: colors.white, fontWeight: "700" },
-  later: { marginTop: 12, textAlign: "center", color: colors.secondary },
-});

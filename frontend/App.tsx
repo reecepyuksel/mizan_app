@@ -1,110 +1,201 @@
-import { useMemo, useState } from "react";
+import "./global.css";
+import React, { useCallback } from "react";
+import { View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { StatusBar } from "expo-status-bar";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+} from "@expo-google-fonts/inter";
+import {
+  NotoSerif_400Regular,
+  NotoSerif_700Bold,
+} from "@expo-google-fonts/noto-serif";
+
+import { LocationProvider } from "./src/context/LocationContext";
 import { HomePrayerScreen } from "./src/screens/HomePrayerScreen";
 import { QuranReadingScreen } from "./src/screens/QuranReadingScreen";
 import { SearchScreen } from "./src/screens/SearchScreen";
-import { HadithSirahListScreen } from "./src/screens/HadithSirahListScreen";
-import { ReadingDetailScreen } from "./src/screens/ReadingDetailScreen";
-import { NotificationStatesScreen } from "./src/screens/NotificationStatesScreen";
-import { UXStatesScreen } from "./src/screens/UXStatesScreen";
 import { QiblaCompassScreen } from "./src/screens/QiblaCompassScreen";
-import { WidgetCollectionScreen } from "./src/screens/WidgetCollectionScreen";
-import { colors } from "./src/theme";
+import { HadithSirahListScreen } from "./src/screens/HadithSirahListScreen";
+import { HadithDetailScreen } from "./src/screens/HadithDetailScreen";
+import { SirahDetailScreen } from "./src/screens/SirahDetailScreen";
+import { NotificationSettingsScreen } from "./src/screens/NotificationSettingsScreen";
 
-type ScreenKey =
-  | "ana_sayfa_vakitler"
-  | "kur_an_okuma"
-  | "geli_mi_arama"
-  | "hadis_ve_siyer_listesi"
-  | "okuma_modu_detay"
-  | "bildirim_ve_durumlar"
-  | "ux_durumlar"
-  | "k_ble_pusulas"
-  | "widget_koleksiyonu";
+SplashScreen.preventAutoHideAsync();
 
-const screens: { key: ScreenKey; label: string }[] = [
-  { key: "ana_sayfa_vakitler", label: "Ana Sayfa Vakitler" },
-  { key: "kur_an_okuma", label: "Kur'an Okuma" },
-  { key: "geli_mi_arama", label: "Gelişmiş Arama" },
-  { key: "hadis_ve_siyer_listesi", label: "Hadis ve Siyer Listesi" },
-  { key: "okuma_modu_detay", label: "Okuma Modu Detay" },
-  { key: "bildirim_ve_durumlar", label: "Bildirim ve Durumlar" },
-  { key: "ux_durumlar", label: "UX Durumları" },
-  { key: "k_ble_pusulas", label: "Kıble Pusulası" },
-  { key: "widget_koleksiyonu", label: "Widget Koleksiyonu" },
-];
+const Tab = createBottomTabNavigator();
+const HomeStack = createNativeStackNavigator();
+const QuranStack = createNativeStackNavigator();
+const SearchStack = createNativeStackNavigator();
+const HadithStack = createNativeStackNavigator();
+const MoreStack = createNativeStackNavigator();
 
-export default function App() {
-  const [active, setActive] = useState<ScreenKey>("ana_sayfa_vakitler");
-
-  const screen = useMemo(() => {
-    if (active === "ana_sayfa_vakitler") return <HomePrayerScreen />;
-    if (active === "kur_an_okuma") return <QuranReadingScreen />;
-    if (active === "geli_mi_arama") return <SearchScreen />;
-    if (active === "hadis_ve_siyer_listesi") return <HadithSirahListScreen />;
-    if (active === "okuma_modu_detay") return <ReadingDetailScreen />;
-    if (active === "bildirim_ve_durumlar") return <NotificationStatesScreen />;
-    if (active === "ux_durumlar") return <UXStatesScreen />;
-    if (active === "widget_koleksiyonu") return <WidgetCollectionScreen />;
-    return <QiblaCompassScreen />;
-  }, [active]);
-
+function HomeStackScreen() {
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.pickerWrap}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.pickerContent}
-        >
-          {screens.map((item) => (
-            <TouchableOpacity
-              key={item.key}
-              style={[styles.pill, active === item.key && styles.pillOn]}
-              onPress={() => setActive(item.key)}
-            >
-              <Text
-                style={[
-                  styles.pillText,
-                  active === item.key && styles.pillTextOn,
-                ]}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-      <View style={styles.body}>{screen}</View>
-    </SafeAreaView>
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="HomeMain" component={HomePrayerScreen} />
+      <HomeStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+    </HomeStack.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  pickerWrap: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceLow,
-  },
-  pickerContent: { paddingHorizontal: 10, paddingVertical: 10, gap: 8 },
-  pill: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: colors.surface,
-  },
-  pillOn: { backgroundColor: colors.primary },
-  pillText: { fontSize: 12, color: colors.onSurfaceVariant, fontWeight: "600" },
-  pillTextOn: { color: colors.white },
-  body: { flex: 1 },
-});
+function QuranStackScreen() {
+  return (
+    <QuranStack.Navigator screenOptions={{ headerShown: false }}>
+      <QuranStack.Screen name="QuranMain" component={QuranReadingScreen} />
+      <QuranStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+    </QuranStack.Navigator>
+  );
+}
+
+function SearchStackScreen() {
+  return (
+    <SearchStack.Navigator screenOptions={{ headerShown: false }}>
+      <SearchStack.Screen name="SearchMain" component={SearchScreen} />
+      <SearchStack.Screen name="HadithDetail" component={HadithDetailScreen} />
+      <SearchStack.Screen name="SirahDetail" component={SirahDetailScreen} />
+      <SearchStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+    </SearchStack.Navigator>
+  );
+}
+
+function HadithStackScreen() {
+  return (
+    <HadithStack.Navigator screenOptions={{ headerShown: false }}>
+      <HadithStack.Screen name="HadithSirahList" component={HadithSirahListScreen} />
+      <HadithStack.Screen name="HadithDetail" component={HadithDetailScreen} />
+      <HadithStack.Screen name="SirahDetail" component={SirahDetailScreen} />
+      <HadithStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+    </HadithStack.Navigator>
+  );
+}
+
+function MoreStackScreen() {
+  return (
+    <MoreStack.Navigator screenOptions={{ headerShown: false }}>
+      <MoreStack.Screen name="QiblaMain" component={QiblaCompassScreen} />
+      <MoreStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+    </MoreStack.Navigator>
+  );
+}
+
+export default function App() {
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    NotoSerif_400Regular,
+    NotoSerif_700Bold,
+  });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded || fontError) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
+  return (
+    <SafeAreaProvider>
+      <LocationProvider>
+        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+          <NavigationContainer>
+            <Tab.Navigator
+              screenOptions={({ route }) => ({
+                headerShown: false,
+                tabBarIcon: ({ focused, color, size }) => {
+                  let iconName: any = "device-unknown";
+
+                  if (route.name === "AnaSayfa") {
+                    iconName = focused ? "home" : "home";
+                  } else if (route.name === "Kuran") {
+                    iconName = "menu-book";
+                  } else if (route.name === "Hadis") {
+                    iconName = "auto-stories";
+                  } else if (route.name === "Arama") {
+                    iconName = "search";
+                  } else if (route.name === "Diger") {
+                    iconName = "explore";
+                  }
+
+                  return <MaterialIcons name={iconName} size={28} color={color} />;
+                },
+                tabBarActiveTintColor: "#003527",
+                tabBarInactiveTintColor: "rgba(6, 78, 59, 0.4)",
+                tabBarStyle: {
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 80,
+                  paddingBottom: 24,
+                  paddingTop: 12,
+                  backgroundColor: "rgba(251, 249, 245, 0.95)",
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                  borderTopWidth: 0,
+                  elevation: 24,
+                  shadowColor: "#1f2937",
+                  shadowOpacity: 0.05,
+                  shadowRadius: 32,
+                  shadowOffset: { width: 0, height: -12 },
+                },
+                tabBarItemStyle: {
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+                tabBarLabelStyle: {
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                  marginTop: 4,
+                },
+                tabBarShowLabel: true,
+              })}
+            >
+              <Tab.Screen
+                name="AnaSayfa"
+                component={HomeStackScreen}
+                options={{ tabBarLabel: "Ana Sayfa" }}
+              />
+              <Tab.Screen
+                name="Kuran"
+                component={QuranStackScreen}
+                options={{ tabBarLabel: "Kur'an" }}
+              />
+              <Tab.Screen
+                name="Hadis"
+                component={HadithStackScreen}
+                options={{ tabBarLabel: "Hadis" }}
+              />
+              <Tab.Screen
+                name="Arama"
+                component={SearchStackScreen}
+                options={{ tabBarLabel: "Arama" }}
+              />
+              <Tab.Screen
+                name="Diger"
+                component={MoreStackScreen}
+                options={{ tabBarLabel: "Kıble" }}
+              />
+            </Tab.Navigator>
+          </NavigationContainer>
+          <StatusBar style="dark" />
+        </View>
+      </LocationProvider>
+    </SafeAreaProvider>
+  );
+}

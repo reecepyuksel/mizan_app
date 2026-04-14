@@ -1,382 +1,236 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import {
-  formatHadithSource,
-  getAyahReference,
-  listHadiths,
-  listSirahs,
-  searchAyahs,
-  searchHadiths,
-  searchKissas,
-  searchSirahs,
-  truncateText,
-} from "../api/mizan";
-import { BottomNav } from "../components/BottomNav";
-import { TopBar } from "../components/TopBar";
-import { colors } from "../theme";
+import React, { useState } from "react";
+import { View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { searchAyahs, searchHadiths, searchSirahs, Ayah, Hadith, Sirah, truncateText } from "../api/mizan";
 
-const chips = ["Hepsi", "Ayet", "Hadis", "Siyer", "Kıssa"];
-
-interface SearchItem {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-}
+type TabTypes = "Hepsi" | "Ayet" | "Hadis" | "Siyer";
+const TABS: TabTypes[] = ["Hepsi", "Ayet", "Hadis", "Siyer"];
 
 export function SearchScreen() {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const [activeTab, setActiveTab] = useState<TabTypes>("Hepsi");
   const [query, setQuery] = useState("");
-  const [activeChip, setActiveChip] = useState("Hepsi");
-  const [featuredText, setFeaturedText] = useState(
-    '"Ey iman edenler! Sabrederek ve namaz kılarak Allah\'tan yardım dileyin."',
-  );
-  const [featuredSrc, setFeaturedSrc] = useState("Bakara 153");
-  const [items, setItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<{
+    ayahs: Ayah[];
+    hadiths: Hadith[];
+    sirahs: Sirah[];
+  }>({ ayahs: [], hadiths: [], sirahs: [] });
 
-  useEffect(() => {
-    let alive = true;
+  const [hasSearched, setHasSearched] = useState(false);
 
-    const loadFeatured = async () => {
-      try {
-        const ayah = await getAyahReference(2, 153, true);
-        if (!alive) {
-          return;
-        }
+  const handleSearch = async (text: string) => {
+    setQuery(text);
+    if (!text.trim()) {
+      setHasSearched(false);
+      return;
+    }
 
-        setFeaturedText(`"${ayah.turkishMeal ?? ayah.arabicText}"`);
-        setFeaturedSrc(`${ayah.surahNumber}:${ayah.ayahNumber}`);
-      } catch {
-        if (!alive) {
-          return;
-        }
+    setLoading(true);
+    setHasSearched(true);
+    try {
+      const [ayahsRes, hadithsRes, sirahsRes] = await Promise.all([
+        searchAyahs(text, 5),
+        searchHadiths(text, 5),
+        searchSirahs(text, 5),
+      ]);
+      setResults({
+        ayahs: ayahsRes || [],
+        hadiths: hadithsRes || [],
+        sirahs: sirahsRes || [],
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setFeaturedText(
-          '"Ey iman edenler! Sabrederek ve namaz kılarak Allah\'tan yardım dileyin."',
-        );
-        setFeaturedSrc("Bakara 153");
-      }
-    };
-
-    void loadFeatured();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-
-    const loadDefaultItems = async () => {
-      setLoading(true);
-      try {
-        const [hadiths, sirahs, ayah] = await Promise.all([
-          listHadiths(2),
-          listSirahs(2),
-          getAyahReference(112, 1, true),
-        ]);
-
-        if (!alive) {
-          return;
-        }
-
-        const mapped: SearchItem[] = [
-          {
-            id: `ayah-${ayah.surahNumber}-${ayah.ayahNumber}`,
-            title: `${ayah.surahNumber}. Sure ${ayah.ayahNumber}. Ayet`,
-            description: truncateText(ayah.turkishMeal ?? ayah.arabicText, 84),
-            type: "Ayet",
-          },
-          ...hadiths.map((item) => ({
-            id: item.id,
-            title: formatHadithSource(item.source),
-            description: truncateText(item.content, 84),
-            type: "Hadis",
-          })),
-          ...sirahs.map((item) => ({
-            id: item.id,
-            title: item.title,
-            description: truncateText(item.summary, 84),
-            type: "Siyer",
-          })),
-        ];
-
-        setItems(
-          activeChip === "Hepsi"
-            ? mapped
-            : mapped.filter((item) => item.type === activeChip),
-        );
-      } catch {
-        if (alive) {
-          setItems([]);
-        }
-      } finally {
-        if (alive) {
-          setLoading(false);
-        }
-      }
-    };
-
-    const loadSearchResults = async () => {
-      setLoading(true);
-      try {
-        let mapped: SearchItem[] = [];
-
-        if (activeChip === "Hepsi") {
-          const [ayahs, hadiths, sirahs, kissas] = await Promise.all([
-            searchAyahs(query, 5),
-            searchHadiths(query, 5),
-            searchSirahs(query, 5),
-            searchKissas(query, 5),
-          ]);
-
-          mapped = [
-            ...ayahs.map((item) => ({
-              id: item.id,
-              title: `${item.surahNumber}. Sure ${item.ayahNumber}. Ayet`,
-              description: truncateText(item.turkishMeal, 84),
-              type: "Ayet",
-            })),
-            ...hadiths.map((item) => ({
-              id: item.id,
-              title: formatHadithSource(item.source),
-              description: truncateText(item.content, 84),
-              type: "Hadis",
-            })),
-            ...sirahs.map((item) => ({
-              id: item.id,
-              title: item.title,
-              description: truncateText(item.summary, 84),
-              type: "Siyer",
-            })),
-            ...kissas.map((item) => ({
-              id: item.id,
-              title: item.title,
-              description: truncateText(item.content, 84),
-              type: "Kıssa",
-            })),
-          ];
-        } else if (activeChip === "Ayet") {
-          const results = await searchAyahs(query, 12);
-          mapped = results.map((item) => ({
-            id: item.id,
-            title: `${item.surahNumber}. Sure ${item.ayahNumber}. Ayet`,
-            description: truncateText(item.turkishMeal, 84),
-            type: "Ayet",
-          }));
-        } else if (activeChip === "Hadis") {
-          const results = await searchHadiths(query, 12);
-          mapped = results.map((item) => ({
-            id: item.id,
-            title: formatHadithSource(item.source),
-            description: truncateText(item.content, 84),
-            type: "Hadis",
-          }));
-        } else if (activeChip === "Siyer") {
-          const results = await searchSirahs(query, 12);
-          mapped = results.map((item) => ({
-            id: item.id,
-            title: item.title,
-            description: truncateText(item.summary, 84),
-            type: "Siyer",
-          }));
-        } else {
-          const results = await searchKissas(query, 12);
-          mapped = results.map((item) => ({
-            id: item.id,
-            title: item.title,
-            description: truncateText(item.content, 84),
-            type: "Kıssa",
-          }));
-        }
-
-        if (alive) {
-          setItems(mapped);
-        }
-      } catch {
-        if (alive) {
-          setItems([]);
-        }
-      } finally {
-        if (alive) {
-          setLoading(false);
-        }
-      }
-    };
-
-    const timeout = setTimeout(() => {
-      if (query.trim().length < 2) {
-        void loadDefaultItems();
-      } else {
-        void loadSearchResults();
-      }
-    }, 250);
-
-    return () => {
-      alive = false;
-      clearTimeout(timeout);
-    };
-  }, [activeChip, query]);
-
-  const filteredItems = useMemo(() => {
-    return items;
-  }, [items]);
+  const hasNoResults = hasSearched && !loading &&
+    results.ayahs.length === 0 &&
+    results.hadiths.length === 0 &&
+    results.sirahs.length === 0;
 
   return (
-    <View style={styles.page}>
-      <TopBar title="İrfan" />
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Kütüphanede Ara</Text>
-        <View style={styles.inputWrap}>
-          <Text style={styles.inputIcon}>⌕</Text>
+    <View style={{ flex: 1, backgroundColor: '#fbf9f5' }}>
+      {/* Top Navigation */}
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: 24,
+          paddingVertical: 16,
+          paddingTop: insets.top + 16,
+          backgroundColor: '#f5f3ef',
+        }}
+      >
+        <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 20, color: '#064e3b' }}>Arama</Text>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('NotificationSettings')}
+          style={{ padding: 8, borderRadius: 999 }}
+        >
+          <MaterialIcons name="notifications-none" size={24} color="#064e3b" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={{ flex: 1, paddingHorizontal: 24 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
+      >
+        <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 28, color: '#003527', marginBottom: 24 }}>
+          Kütüphanede Ara
+        </Text>
+
+        {/* Search Input */}
+        <View style={{ position: 'relative', marginBottom: 32, justifyContent: 'center' }}>
+          <View style={{ position: 'absolute', left: 20, zIndex: 10 }}>
+            <MaterialIcons name="search" size={22} color="#707974" />
+          </View>
           <TextInput
+            style={{
+              width: '100%',
+              backgroundColor: '#eae8e4',
+              borderRadius: 16,
+              paddingVertical: 18,
+              paddingLeft: 56,
+              paddingRight: 24,
+              fontSize: 16,
+              color: '#1b1c1a',
+              fontFamily: 'Inter_400Regular',
+            }}
             placeholder="Ayet, Hadis, Siyer ara..."
-            placeholderTextColor={colors.outline}
-            style={styles.input}
+            placeholderTextColor="#707974"
             value={query}
-            onChangeText={setQuery}
+            onChangeText={handleSearch}
           />
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginTop: 14 }}
-        >
-          {chips.map((c, i) => (
-            <TouchableOpacity
-              key={c}
-              onPress={() => setActiveChip(c)}
-              style={[styles.chip, activeChip === c && styles.chipOn]}
-            >
-              <Text
-                style={[styles.chipText, activeChip === c && styles.chipOnText]}
-              >
-                {c}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
 
-        <Text style={styles.sub}>İlginizi Çekebilir</Text>
-        <View style={styles.feature}>
-          <Text style={styles.featureTag}>Günün Okuması</Text>
-          <Text style={styles.featureText}>{featuredText}</Text>
-          <Text style={styles.featureSrc}>{featuredSrc}</Text>
+        {/* Tabs */}
+        <View style={{ marginBottom: 40 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={{ flexDirection: 'row', gap: 8, paddingBottom: 8 }}>
+              {TABS.map(tab => (
+                <TouchableOpacity
+                  key={tab}
+                  style={{
+                    paddingHorizontal: 24,
+                    paddingVertical: 10,
+                    borderRadius: 999,
+                    backgroundColor: activeTab === tab ? '#003527' : '#f5f3ef',
+                  }}
+                  onPress={() => setActiveTab(tab)}
+                >
+                  <Text style={{
+                    fontFamily: 'Inter_500Medium',
+                    fontSize: 14,
+                    color: activeTab === tab ? '#ffffff' : '#404944',
+                  }}>
+                    {tab}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
         </View>
 
-        <Text style={styles.sub}>
-          {query.trim().length >= 2 ? "Arama Sonuçları" : "Popüler İçerikler"}
-        </Text>
+        {/* Content */}
         {loading ? (
-          <View style={styles.loadingWrap}>
-            <ActivityIndicator size="small" color={colors.primary} />
+          <View style={{ paddingVertical: 80, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color="#003527" />
+            <Text style={{ color: '#404944', marginTop: 12, fontSize: 14 }}>Aranıyor...</Text>
           </View>
-        ) : null}
-        {filteredItems.map((item) => (
-          <View key={item.title} style={styles.row}>
-            <View style={styles.iconBox}>
-              <Text>{item.type[0]}</Text>
+        ) : hasNoResults ? (
+          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 80, paddingHorizontal: 32, backgroundColor: '#f5f3ef', borderRadius: 32 }}>
+            <View style={{ width: 80, height: 80, backgroundColor: '#e4e2de', borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+              <MaterialIcons name="search-off" size={32} color="rgba(112,121,116,0.4)" />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowTitle}>{item.title}</Text>
-              <Text style={styles.rowDesc}>{item.description}</Text>
-            </View>
-          </View>
-        ))}
-        {filteredItems.length === 0 ? (
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyTitle}>Sonuç bulunamadı</Text>
-            <Text style={styles.emptyText}>
-              Farklı bir kelime veya kategori ile tekrar deneyin.
+            <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 20, color: '#003527', marginBottom: 8 }}>Sonuç Bulunamadı</Text>
+            <Text style={{ color: '#404944', fontSize: 14, textAlign: 'center' }}>
+              Aradığınız kelimeye uygun içerik bulunamadı.
             </Text>
           </View>
-        ) : null}
+        ) : hasSearched ? (
+          <View style={{ gap: 16 }}>
+            {/* Ayahs */}
+            {(activeTab === "Hepsi" || activeTab === "Ayet") && results.ayahs.map(ayah => (
+              <View key={ayah.id} style={{
+                backgroundColor: '#ffffff', padding: 20, borderRadius: 16,
+                shadowColor: '#1f2937', shadowOpacity: 0.03, shadowRadius: 16,
+                shadowOffset: { width: 0, height: 4 },
+                borderWidth: 1, borderColor: 'rgba(191,201,195,0.1)',
+              }}>
+                <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 18, color: '#003527', marginBottom: 8, textAlign: 'right', writingDirection: 'rtl' }}>
+                  {ayah.arabicText}
+                </Text>
+                <Text style={{ fontSize: 14, color: '#404944', marginBottom: 8 }}>{ayah.turkishMeal}</Text>
+                <Text style={{ fontSize: 10, color: '#707974', fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase' }}>
+                  {ayah.surahNumber}. Sure {ayah.ayahNumber}. Ayet
+                </Text>
+              </View>
+            ))}
+
+            {/* Hadiths */}
+            {(activeTab === "Hepsi" || activeTab === "Hadis") && results.hadiths.map(hadith => (
+              <TouchableOpacity
+                key={hadith.id}
+                onPress={() => navigation.navigate('HadithDetail', { hadithId: hadith.id, hadith })}
+                style={{
+                  backgroundColor: '#ffffff', padding: 20, borderRadius: 16,
+                  shadowColor: '#1f2937', shadowOpacity: 0.03, shadowRadius: 16,
+                  shadowOffset: { width: 0, height: 4 },
+                  borderWidth: 1, borderColor: 'rgba(191,201,195,0.1)',
+                }}
+              >
+                <Text style={{ fontSize: 14, color: '#1b1c1a', marginBottom: 8 }}>{truncateText(hadith.content, 150)}</Text>
+                <Text style={{ fontSize: 10, color: '#4c616c', fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase' }}>{hadith.source}</Text>
+              </TouchableOpacity>
+            ))}
+
+            {/* Sirahs */}
+            {(activeTab === "Hepsi" || activeTab === "Siyer") && results.sirahs.map(sirah => (
+              <TouchableOpacity
+                key={sirah.id}
+                onPress={() => navigation.navigate('SirahDetail', { sirahId: sirah.id, sirah })}
+                style={{
+                  backgroundColor: '#ffffff', padding: 20, borderRadius: 16,
+                  shadowColor: '#1f2937', shadowOpacity: 0.03, shadowRadius: 16,
+                  shadowOffset: { width: 0, height: 4 },
+                  borderWidth: 1, borderColor: 'rgba(191,201,195,0.1)',
+                }}
+              >
+                <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 18, color: '#003527', marginBottom: 8 }}>
+                  {sirah.title}
+                </Text>
+                <Text style={{ fontSize: 14, color: '#404944', marginBottom: 8 }}>{truncateText(sirah.summary, 100)}</Text>
+                <Text style={{ fontSize: 10, color: '#003527', fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase' }}>Siyer</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <View>
+            <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase', letterSpacing: 2, color: '#707974', marginBottom: 16 }}>
+              İlginizi Çekebilir
+            </Text>
+            <View style={{
+              backgroundColor: '#003527', borderRadius: 32, padding: 32, overflow: 'hidden',
+            }}>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, alignSelf: 'flex-start', marginBottom: 16 }}>
+                <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase', color: '#ffffff' }}>Günün Okuması</Text>
+              </View>
+              <Text style={{ fontFamily: 'NotoSerif_700Bold', fontSize: 22, color: '#ffffff', marginBottom: 8, fontStyle: 'italic', lineHeight: 32 }}>
+                "Ey iman edenler! Sabrederek ve namaz kılarak Allah'tan yardım dileyin."
+              </Text>
+              <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', fontFamily: 'Inter_500Medium' }}>
+                Bakara Suresi, 153. Ayet
+              </Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
-      <BottomNav active="search" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.surface },
-  content: { paddingHorizontal: 20, paddingBottom: 24 },
-  title: {
-    marginTop: 8,
-    fontSize: 34,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  inputWrap: {
-    marginTop: 16,
-    borderRadius: 16,
-    backgroundColor: colors.surfaceHighest,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-  },
-  inputIcon: { color: colors.outline, fontSize: 18 },
-  input: { flex: 1, fontSize: 18, paddingVertical: 16, marginLeft: 8 },
-  chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: colors.surfaceLow,
-    marginRight: 8,
-  },
-  chipOn: { backgroundColor: colors.primary },
-  chipText: { color: colors.onSurfaceVariant, fontWeight: "600" },
-  chipOnText: { color: colors.white },
-  sub: {
-    marginTop: 24,
-    marginBottom: 12,
-    fontSize: 12,
-    textTransform: "uppercase",
-    color: colors.outline,
-    fontWeight: "700",
-  },
-  feature: { backgroundColor: colors.primary, borderRadius: 24, padding: 20 },
-  featureTag: { color: colors.white, fontSize: 10, textTransform: "uppercase" },
-  featureText: {
-    color: colors.white,
-    fontSize: 24,
-    lineHeight: 32,
-    marginTop: 10,
-  },
-  featureSrc: { color: "rgba(255,255,255,0.75)", marginTop: 10 },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 10,
-  },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: colors.secondaryContainer,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rowTitle: { fontSize: 16, fontWeight: "700", color: colors.onSurface },
-  rowDesc: { marginTop: 4, fontSize: 12, color: colors.onSurfaceVariant },
-  loadingWrap: { alignItems: "center", marginBottom: 12 },
-  emptyWrap: {
-    marginTop: 6,
-    borderRadius: 16,
-    padding: 16,
-    backgroundColor: colors.surfaceLow,
-    marginBottom: 12,
-  },
-  emptyTitle: { fontSize: 16, fontWeight: "700", color: colors.primary },
-  emptyText: { marginTop: 6, color: colors.onSurfaceVariant },
-});

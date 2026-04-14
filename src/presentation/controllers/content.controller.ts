@@ -78,13 +78,6 @@ export class ContentController {
     );
   }
 
-  @Get("ayahs/:id")
-  @ApiOperation({ summary: "ID ile ayet detayi" })
-  @ApiOkResponse({ description: "Ayet detayi" })
-  public getAyahById(@Param("id") id: string) {
-    return this.getAyahByIdUseCase.execute(id);
-  }
-
   @Get("ayahs/reference")
   @ApiOperation({ summary: "Sure + ayet numarasiyla ayet detayi" })
   @ApiOkResponse({ description: "Ayet detayi (opsiyonel meal)" })
@@ -94,6 +87,13 @@ export class ContentController {
       ayahNumber: query.ayahNumber,
       includeMeal: query.includeMeal,
     });
+  }
+
+  @Get("ayahs/:id")
+  @ApiOperation({ summary: "ID ile ayet detayi" })
+  @ApiOkResponse({ description: "Ayet detayi" })
+  public getAyahById(@Param("id") id: string) {
+    return this.getAyahByIdUseCase.execute(id);
   }
 
   @Get("hadiths")
@@ -131,3 +131,4 @@ export class ContentController {
     return this.getSirahByIdUseCase.execute(id);
   }
 }
+

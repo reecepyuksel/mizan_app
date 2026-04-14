@@ -1,4 +1,29 @@
-export const API_BASE_URL = "http://localhost:3000";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+
+const getApiBaseUrl = () => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  
+  const hostUri = Constants.expoConfig?.hostUri || Constants.experienceUrl || "";
+  let ip = "192.168.1.179"; // Hard fallback to developer's explicit LAN IP
+  
+  if (hostUri) {
+    const match = hostUri.match(/:\/\/(.*?):/);
+    if (match && match[1]) {
+      ip = match[1];
+    }
+  } else if (__DEV__ && Platform.OS === 'android') {
+    ip = "10.0.2.2";
+  } else if (__DEV__ && Platform.OS === 'ios') {
+    ip = "localhost";
+  }
+  
+  return `http://${ip}:3000/api`;
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const ISTANBUL_COORDS = {
   lat: 41.0082,
@@ -47,11 +72,7 @@ export interface Sirah {
   content: string;
 }
 
-export interface Kissa {
-  id: string;
-  title: string;
-  content: string;
-}
+
 
 export interface QiblaDirection {
   latitude: number;
@@ -206,9 +227,7 @@ export async function searchSirahs(q: string, limit = 20): Promise<Sirah[]> {
   return requestJson<Sirah[]>("/search/sirahs", { q, limit });
 }
 
-export async function searchKissas(q: string, limit = 20): Promise<Kissa[]> {
-  return requestJson<Kissa[]>("/search/kissas", { q, limit });
-}
+
 
 export function parsePrayerTimeForDate(
   time: string,
@@ -253,11 +272,60 @@ export function getNextPrayerInfo(daily: DailyPrayerTimes, now = new Date()) {
 }
 
 export function formatCountdown(ms: number): string {
-  const totalMinutes = Math.max(0, Math.floor(ms / 60000));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
+
+export function getNextPrayerProgress(daily: DailyPrayerTimes, now = new Date()): number {
+  const slots = [
+    { name: "İmsak", time: daily.imsak },
+    { name: "Güneş", time: daily.gunes },
+    { name: "Öğle", time: daily.ogle },
+    { name: "İkindi", time: daily.ikindi },
+    { name: "Akşam", time: daily.aksam },
+    { name: "Yatsı", time: daily.yatsi },
+  ].map((slot) => ({
+    ...slot,
+    target: parsePrayerTimeForDate(slot.time, now),
+  }));
+
+  const currentIdx = slots.findIndex((slot) => slot.target.getTime() > now.getTime());
+  if (currentIdx <= 0) return 1;
+
+  const prevTarget = slots[currentIdx - 1].target.getTime();
+  const nextTarget = slots[currentIdx].target.getTime();
+  const totalDuration = nextTarget - prevTarget;
+  const elapsed = now.getTime() - prevTarget;
+
+  return Math.min(1, Math.max(0, elapsed / totalDuration));
+}
+
+export function calculateDistanceToKaaba(lat: number, lon: number): number {
+  const R = 6371;
+  const dLat = ((KAABA_COORDS.lat - lat) * Math.PI) / 180;
+  const dLon = ((KAABA_COORDS.lon - lon) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat * Math.PI) / 180) *
+      Math.cos((KAABA_COORDS.lat * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function formatDistance(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${Math.round(km).toLocaleString("tr-TR")} km`;
+}
+
+export const KAABA_COORDS = {
+  lat: 21.422487,
+  lon: 39.826206,
+};
 
 export function formatPrayerDateLabel(dateValue: string): string {
   if (!dateValue) {
