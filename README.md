@@ -732,7 +732,7 @@ mizan-app/
 
 ## 💬 İletişim & Destek
 
-- **Email:** support@mizanapp.com
+- **Email:** recepyyuksel@gmail.com
 
 ---
 
@@ -749,10 +749,3 @@ Bu proje aşağıdakiler tarafından mümkün kılınmıştır:
 
 ---
 
-<div align="center">
-
-**Made with ❤️ for the Islamic Community**
-
-⭐ Bu projeyi beğendiyseniz yıldız vermekten çekinmeyin!
-
-</div>
