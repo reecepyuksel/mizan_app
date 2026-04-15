@@ -6,6 +6,7 @@ dist
 .npmrc
 .pnp.*
 .DS_Store
+frontend/.expo/
 
 # Secrets and local credentials
 *.pem
